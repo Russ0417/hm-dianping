@@ -119,7 +119,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             while (true) {
                 try {
                     //  1.获取pending-list中订单信息 XREADGROUP GROUP g1 C1 COUNT 1  STREAMS streams.order 0
-                    VoucherOrder voucherOrder = null;
                     List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
                             Consumer.from("g1", "c1"),
                             StreamOffset.create(queueName, ReadOffset.from("0"))//表达从头开始
@@ -132,7 +131,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                     //解析消息中的数据
                     MapRecord<String, Object, Object> record = list.get(0);
                     Map<Object, Object> values = record.getValue();
-                    BeanUtil.fillBeanWithMap(values, voucherOrder, true);
+                    VoucherOrder voucherOrder = BeanUtil.fillBeanWithMap(values, new VoucherOrder(), true);
                     //  3.获取成功，下单
                     handleVoucherOrder(voucherOrder);
                     //  4.ACK确认 即从PendingList中移除已经消费的消息
