@@ -55,7 +55,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Resource
     RedisIdWorker redisIdWorker;
     //读取lua脚本
-    @Resource
     private static final DefaultRedisScript<Long> SECKILL_SCRIPT;
 
     static {
@@ -70,84 +69,83 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     /**
      * 类被加载时就初始化线程，用于执行任务
      */
-    @PostConstruct
-    private void init() {
-        SECKILL_ORDER_EXECUTOR.submit(new VoucherOrderHandler());
-    }
+//    @PostConstruct
+//    private void init() {
+//        SECKILL_ORDER_EXECUTOR.submit(new VoucherOrderHandler());
+//    }
 
     /**
      * 创建线程读取消息队列，并且不断往数据库写入订单信息
      */
-    private class VoucherOrderHandler implements Runnable {
-        /**
-         * 队列名称
-         */
-        String queueName = "stream.orders";
-
-        @Override
-        public void run() {
-            while (true) {
-                try {
-                    //  1.获取stream消息队列订单信息 XREADGROUP GROUP g1 C1 COUNT 1 BLOCK 2000 STREAMS streams.order >
-                    VoucherOrder voucherOrder = null;
-                    List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
-                            Consumer.from("g1", "c1"),
-                            StreamReadOptions.empty().count(1).block(Duration.ofSeconds(2000)),
-                            StreamOffset.create(queueName, ReadOffset.lastConsumed())//从最后一个消费的消息开始
-                    );
-                    //  2.判断消息获取是否成功
-                    if (list == null || list.isEmpty()) {
-                        //  2.1 获取失败，进行下次循环
-                        continue;
-                    }
-                    //解析消息中的数据
-                    MapRecord<String, Object, Object> record = list.get(0);
-                    Map<Object, Object> values = record.getValue();
-                    BeanUtil.fillBeanWithMap(values, voucherOrder, true);
-                    //  3.获取成功，下单
-                    handleVoucherOrder(voucherOrder);
-                    //  4.ACK确认 即从PendingList中移除已经消费的消息
-                    stringRedisTemplate.opsForStream().acknowledge(queueName, "g1", record.getId());
-                } catch (Exception e) {
-                    handlePendingList();
-                    log.error("处理订单异常");
-                }
-            }
-        }
-
-        private void handlePendingList() {
-            while (true) {
-                try {
-                    //  1.获取pending-list中订单信息 XREADGROUP GROUP g1 C1 COUNT 1  STREAMS streams.order 0
-                    List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
-                            Consumer.from("g1", "c1"),
-                            StreamOffset.create(queueName, ReadOffset.from("0"))//表达从头开始
-                    );
-                    //  2.判断消息获取是否成功
-                    if (list == null || list.isEmpty()) {
-                        //  2.1 获取失败，说明pending-list中没有为确认消息，结束循环
-                        break;
-                    }
-                    //解析消息中的数据
-                    MapRecord<String, Object, Object> record = list.get(0);
-                    Map<Object, Object> values = record.getValue();
-                    VoucherOrder voucherOrder = BeanUtil.fillBeanWithMap(values, new VoucherOrder(), true);
-                    //  3.获取成功，下单
-                    handleVoucherOrder(voucherOrder);
-                    //  4.ACK确认 即从PendingList中移除已经消费的消息
-                    stringRedisTemplate.opsForStream().acknowledge(queueName, "g1", record.getId());
-                } catch (Exception e) {
-                    log.error("处理订单异常 Pending-list错误");
-                    try {
-                        Thread.sleep(20);
-                    } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-            }
-        }
-
-    }
+//    private class VoucherOrderHandler implements Runnable {
+//        /**
+//         * 队列名称
+//         */
+//        String queueName = "stream.orders";
+//        @Override
+//        public void run() {
+//            while (true) {
+//                try {
+//                    //  1.获取stream消息队列订单信息 XREADGROUP GROUP g1 C1 COUNT 1 BLOCK 2000 STREAMS streams.order >
+//                    VoucherOrder voucherOrder = null;
+//                    List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
+//                            Consumer.from("g1", "c1"),
+//                            StreamReadOptions.empty().count(1).block(Duration.ofSeconds(2000)),
+//                            StreamOffset.create(queueName, ReadOffset.lastConsumed())//从最后一个消费的消息开始
+//                    );
+//                    //  2.判断消息获取是否成功
+//                    if (list == null || list.isEmpty()) {
+//                        //  2.1 获取失败，进行下次循环
+//                        continue;
+//                    }
+//                    //解析消息中的数据
+//                    MapRecord<String, Object, Object> record = list.get(0);
+//                    Map<Object, Object> values = record.getValue();
+//                    BeanUtil.fillBeanWithMap(values, voucherOrder, true);
+//                    //  3.获取成功，下单
+//                    handleVoucherOrder(voucherOrder);
+//                    //  4.ACK确认 即从PendingList中移除已经消费的消息
+//                    stringRedisTemplate.opsForStream().acknowledge(queueName, "g1", record.getId());
+//                } catch (Exception e) {
+//                    handlePendingList();
+//                    log.error("处理订单异常");
+//                }
+//            }
+//        }
+//
+//        private void handlePendingList() {
+//            while (true) {
+//                try {
+//                    //  1.获取pending-list中订单信息 XREADGROUP GROUP g1 C1 COUNT 1  STREAMS streams.order 0
+//                    List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
+//                            Consumer.from("g1", "c1"),
+//                            StreamOffset.create(queueName, ReadOffset.from("0"))//表达从头开始
+//                    );
+//                    //  2.判断消息获取是否成功
+//                    if (list == null || list.isEmpty()) {
+//                        //  2.1 获取失败，说明pending-list中没有为确认消息，结束循环
+//                        break;
+//                    }
+//                    //解析消息中的数据
+//                    MapRecord<String, Object, Object> record = list.get(0);
+//                    Map<Object, Object> values = record.getValue();
+//                    VoucherOrder voucherOrder = BeanUtil.fillBeanWithMap(values, new VoucherOrder(), true);
+//                    //  3.获取成功，下单
+//                    handleVoucherOrder(voucherOrder);
+//                    //  4.ACK确认 即从PendingList中移除已经消费的消息
+//                    stringRedisTemplate.opsForStream().acknowledge(queueName, "g1", record.getId());
+//                } catch (Exception e) {
+//                    log.error("处理订单异常 Pending-list错误");
+//                    try {
+//                        Thread.sleep(20);
+//                    } catch (InterruptedException ex) {
+//                        throw new RuntimeException(ex);
+//                    }
+//                }
+//            }
+//        }
+//
+//    }
 
     /**
      * 创建订单 使用Redisson提供的简单分布式锁
@@ -185,14 +183,14 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         //生成订单Id
         Long orderId = redisIdWorker.nextId("order");
         //执行lua脚本，实现对库存，超卖的判断，同时将生成订单写入Redis的阻塞队列中，等待下一步写入数据库
-        Long result = stringRedisTemplate.execute(SECKILL_SCRIPT,
-                Collections.emptyList(),
-                voucherId.toString(),
-                userId.toString(),
-                String.valueOf(orderId));
-        if (result.intValue() != 0) {
-            return Result.fail(result.intValue() == 1 ? "库存不足" : "不可以重复下单");
-        }
+//        Long result = stringRedisTemplate.execute(SECKILL_SCRIPT,
+//                Collections.emptyList(),
+//                voucherId.toString(),
+//                userId.toString(),
+//                String.valueOf(orderId));
+//        if (result.intValue() != 0) {
+//            return Result.fail(result.intValue() == 1 ? "库存不足" : "不可以重复下单");
+//        }
         //返回用户订单信息
         return Result.ok(orderId);
     }
