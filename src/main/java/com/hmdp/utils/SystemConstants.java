@@ -5,7 +5,6 @@ package com.hmdp.utils;
  */
 public class SystemConstants {
 
-    //            "D:\\lesson\\nginx-1.18.0\\html\\hmdp\\imgs\\";
     public static final String IMAGE_UPLOAD_DIR =
             "E:\\Study\\hm-dianping\\src\\main\\resources\\nginx-1.18.0\\html\\hmdp\\imgs\\";
     public static final String USER_NICK_NAME_PREFIX = "user_";
