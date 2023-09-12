@@ -79,9 +79,25 @@ public class BlogController {
         return blogService.queryHotBlog(current);
     }
 
+    /**
+     * 博客详情
+     *
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     public Result queryBlogById(@PathVariable Long id) {
         return blogService.queryBlogById(id);
+    }
+
+    /**
+     * 博客详情点赞列表（Top5）
+     *
+     * @param id
+     */
+    @GetMapping("/likes/{id}")
+    public Result queryBlogLikes(@PathVariable Long id) {
+        return blogService.queryBlogLikes(id);
     }
 
 }
