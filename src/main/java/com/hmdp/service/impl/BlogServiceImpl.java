@@ -90,7 +90,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         Long userId = user.getId();
         //查询博客的点赞队列中是否存在当前用户
-        Double score = stringRedisTemplate.opsForZSet().score(key, userId);
+        Double score = stringRedisTemplate.opsForZSet().score(key, userId.toString());
         blog.setIsLike(score != null);
     }
 

@@ -79,6 +79,17 @@ public class BlogController {
         return blogService.queryHotBlog(current);
     }
 
+    @GetMapping("/of/user")
+    public Result queryBlogByUserId(
+            @RequestParam(value = "current", defaultValue = "1") Integer current,
+            @RequestParam("id") Long userid) {
+        Page<Blog> page = blogService.query()
+                .eq("user_id", userid)
+                .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        List<Blog> records = page.getRecords();
+        return Result.ok(records);
+    }
+
     /**
      * 博客详情
      *
