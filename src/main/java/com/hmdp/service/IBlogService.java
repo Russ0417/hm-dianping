@@ -16,6 +16,9 @@ public interface IBlogService extends IService<Blog> {
 
     Result queryBlogById(Long id);
 
+    /**
+     * 分页
+     */
     Result queryHotBlog(Integer current);
 
     /**
@@ -23,5 +26,21 @@ public interface IBlogService extends IService<Blog> {
      */
     Result likeBlog(Long id);
 
+    /**
+     * 博客点赞列表
+     */
     Result queryBlogLikes(Long id);
+
+    /**
+     * 发布博客
+     */
+    Result saveBlog(Blog blog);
+
+    /**
+     * 关注用户的博客推送
+     *
+     * @param max
+     * @param offset
+     */
+    Result queryBlogOfFollow(Long max, Integer offset);
 }
