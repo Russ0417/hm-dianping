@@ -1,6 +1,7 @@
 package com.hmdp.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
@@ -74,6 +75,9 @@ public class UserController {
     public Result me() {
         //  获取当前登录的用户并返回
         UserDTO user = UserHolder.getUser();
+        if (ObjectUtil.isEmpty(user)) {
+            return Result.fail("当前您未登录");
+        }
         return Result.ok(user);
     }
 

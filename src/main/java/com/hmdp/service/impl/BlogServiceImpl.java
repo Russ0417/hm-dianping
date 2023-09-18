@@ -137,7 +137,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     }
 
     /**
-     * 发布博客，同时存入Redis的ZSet队列中
+     * 发布博客，同时存入Redis的ZSet队列中(用于推送给关注的用户)
      */
     @Override
     public Result saveBlog(Blog blog) {
@@ -160,14 +160,23 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         return Result.ok(blog.getId());
     }
 
+    /**
+     * 滚动博客列表查询
+     *
+     * @param max    一次请求博客个数
+     * @param offset 偏移量
+     */
     @Override
     public Result queryBlogOfFollow(Long max, Integer offset) {
         Long userId = UserHolder.getUser().getId();
 
         //1.查询收件箱所有博客
         String key = FEED_KEY + userId;
+        //这里的count代表单次请求的博客个数
+        long count = 2;
         Set<ZSetOperations.TypedTuple<String>> typedTuples =
-                stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(key, 0, max, offset, 3);
+                stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(key, 0, max, offset, count);
+        //非空判断
         if (typedTuples.isEmpty() || typedTuples == null) {
             return Result.fail("没有最新的消息更新！");
         }

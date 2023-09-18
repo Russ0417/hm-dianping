@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 滚动分页结果
+ * 滚动分页封装类
  */
 @Data
 public class ScrollResult {
