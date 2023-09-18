@@ -31,7 +31,6 @@ public class UserController {
 
     @Resource
     private IUserService userService;
-
     @Resource
     private IUserInfoService userInfoService;
 
@@ -103,5 +102,21 @@ public class UserController {
         }
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         return Result.ok(userDTO);
+    }
+
+    /**
+     * 用户签到功能，基于Redis的BitMap实现
+     */
+    @PostMapping("/sign")
+    public Result sign() {
+        return userService.sign();
+    }
+
+    /**
+     * 用户连续签到统计功能
+     */
+    @GetMapping("/sign/count")
+    public Result signCount() {
+        return userService.signCount();
     }
 }
